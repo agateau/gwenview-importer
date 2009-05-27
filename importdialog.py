@@ -1,3 +1,4 @@
+import os
 import time
 
 from PyQt4.QtCore import *
@@ -24,6 +25,9 @@ class ImportDialog(KDialog):
         self.setMainWidget(widget)
         self.showButtonSeparator(True)
 
+        self.initComboBox()
+        self.ui.eventComboBox.clearEditText()
+
         QObject.connect(self.ui.eventComboBox, SIGNAL("editTextChanged(QString)"), \
             self.updateDstLabel)
 
@@ -32,6 +36,18 @@ class ImportDialog(KDialog):
         font.setItalic(True)
         self.ui.dstLabel.setFont(font)
         self.updateDstLabel()
+
+
+    def initComboBox(self):
+        dir = unicode(self.dstBaseUrl.path())
+        if not os.path.exists(dir):
+            return
+        lst = QStringList()
+        for file in os.listdir(dir):
+            if os.path.isdir(os.path.join(dir, file)):
+                lst.append(QString(file))
+        lst.sort()
+        self.ui.eventComboBox.addItems(lst)
 
 
     def sizeHint(self):
