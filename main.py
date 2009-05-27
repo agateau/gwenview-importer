@@ -10,7 +10,6 @@ from PyQt4.QtGui import *
 from PyKDE4.kdecore import *
 from PyKDE4.kdeui import *
 from PyKDE4.kio import *
-from PyKDE4.solid import *
 
 from importdialog import ImportDialog
 
@@ -18,10 +17,6 @@ from importdialog import ImportDialog
 EXTENSIONS = [".jpg", ".jpeg", ".png", ".tif", ".tiff"]
 
 DEFAULT_BASE_DST_FOLDER = "~/photos"
-
-
-def pathFromUdi(udi):
-    print udi
 
 
 def listImages(path):
@@ -137,25 +132,17 @@ def main():
     app = QApplication(sys.argv)
 
     parser = OptionParser(usage="%prog <options>")
-    parser.add_option("--udi", dest="udi",
-                      help="Import from device whose udi is UDI", metavar="UDI")
     parser.add_option("--src", dest="src",
                       help="Import from folder PATH", metavar="PATH")
     parser.add_option("--base-dst", dest="baseDst", default=DEFAULT_BASE_DST_FOLDER,
                       help="Import to folder PATH/<year>/<event>", metavar="PATH")
     (options, args) = parser.parse_args()
 
-    if not options.udi and not options.src:
+    if not options.src:
         parser.print_help()
         return 1
 
-    if options.udi:
-        src = pathFromUdi(options.udi)
-        if not src:
-            print "Could not open device"
-            return 2
-    else:
-        src = options.src
+    src = options.src
 
     baseDst = os.path.expanduser(options.baseDst)
     controller = Controller(src, baseDst)
