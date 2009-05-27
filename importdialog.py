@@ -24,6 +24,7 @@ class ImportDialog(KDialog):
         widget.layout().setMargin(0)
         self.setMainWidget(widget)
         self.showButtonSeparator(True)
+        self.setButtonText(KDialog.Ok, i18n("Import"))
 
         self.initComboBox()
         self.ui.eventComboBox.clearEditText()
