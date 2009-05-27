@@ -68,29 +68,31 @@ class Controller(QObject):
         QObject.__init__(self)
         self.src = src
         self.dlg = ImportDialog(KUrl(baseDst))
-        QObject.connect(self.dlg, \
-            SIGNAL("currentPageChanged(KPageWidgetItem*, KPageWidgetItem*)"), \
-            self.slotCurrentPageChanged)
 
 
     def run(self):
-        self.dlg.show()
+        if not self.dlg.exec_():
+            return False
 
-
-    def slotCurrentPageChanged(self, newItem, oldItem):
         self.dstDirUrl = self.dlg.dstUrl()
+
+        self.progressDlg = KProgressDialog()
+        self.progressDlg.setLabelText(i18n("Initializing..."))
+        self.progressDlg.setMinimumDuration(0)
+        qApp.processEvents()
 
         dir = unicode(self.dstDirUrl.path())
         if not os.path.exists(dir):
             os.makedirs(dir)
 
+        self.progressDlg.setLabelText(i18n("Importing pictures..."))
         self.urlList = listImages(self.src)
         if not self.urlList:
-            self.dlg.close()
             KMessageBox.information(None, i18n("No picture to import."))
-            return
-        self.dlg.showProgressPage(len(self.urlList))
+            return False
+        self.progressDlg.progressBar().setRange(0, len(self.urlList))
         self.copyOneUrl()
+        return True
 
 
     def copyOneUrl(self):
@@ -105,14 +107,15 @@ class Controller(QObject):
     def slotJobResult(self, job):
         if job.error() != 0:
             job.uiDelegate().showErrorMessage()
-            self.dlg.close()
+            self.progressDlg.close()
             return
 
-        self.dlg.increaseProgressValue()
+        bar = self.progressDlg.progressBar()
+        bar.setValue(bar.value() + 1)
         if self.urlList:
             self.copyOneUrl()
         else:
-            self.dlg.close()
+            self.progressDlg.close()
             self.deleteFromCard()
 
 
@@ -156,7 +159,8 @@ def main():
 
     baseDst = os.path.expanduser(options.baseDst)
     controller = Controller(src, baseDst)
-    controller.run()
+    if not controller.run():
+        return 1
     app.exec_()
     return 0
 

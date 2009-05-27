@@ -5,48 +5,29 @@ from PyQt4.QtGui import *
 from PyKDE4.kdecore import *
 from PyKDE4.kdeui import *
 
-from ui_progresspage import Ui_ProgressPage
 from ui_importdialog import Ui_ImportDialog
 
 
-class ImportDialog(KAssistantDialog):
+class ImportDialog(KDialog):
     def __init__(self, dstUrl):
-        KAssistantDialog.__init__(self)
+        KDialog.__init__(self)
 
         self.dstBaseUrl = KUrl(dstUrl)
         year = str(time.gmtime().tm_year)
         self.dstBaseUrl.addPath(year)
 
         # Destination
-        self.destinationPage = QWidget(self)
-        self.destinationUi = Ui_ImportDialog()
-        self.destinationUi.setupUi(self.destinationPage)
-        self.destinationPage.layout().setMargin(0)
-        self.destinationPageItem = self.addPage(self.destinationPage, i18n("Destination"))
+        widget = QWidget(self)
+        self.ui = Ui_ImportDialog()
+        self.ui.setupUi(widget)
+        widget.layout().setMargin(0)
+        self.setMainWidget(widget)
 
-        # Progress
-        self.progressPage = QWidget(self)
-        self.progressUi = Ui_ProgressPage()
-        self.progressUi.setupUi(self.progressPage)
-        self.progressPage.layout().setMargin(0)
-        self.progressPageItem = self.addPage(self.progressPage, i18n("Progress"))
-
-        QObject.connect(self.destinationUi.eventComboBox, SIGNAL("editTextChanged(QString)"), \
+        QObject.connect(self.ui.eventComboBox, SIGNAL("editTextChanged(QString)"), \
             self.updateDstLabel)
 
-        self.destinationUi.eventComboBox.setFocus()
+        self.ui.eventComboBox.setFocus()
         self.updateDstLabel()
-
-
-    def showProgressPage(self, count):
-        self.progressUi.progressBar.setRange(0, count)
-        self.progressUi.progressBar.setValue(0)
-        self.setCurrentPage(self.progressPageItem)
-
-
-    def increaseProgressValue(self):
-        bar = self.progressUi.progressBar
-        bar.setValue(bar.value() + 1)
 
 
     def sizeHint(self):
@@ -57,12 +38,12 @@ class ImportDialog(KAssistantDialog):
 
     def updateDstLabel(self):
         url = self.dstUrl()
-        self.destinationUi.dstLabel.setText(url.pathOrUrl())
+        self.ui.dstLabel.setText(url.pathOrUrl())
 
 
     def dstUrl(self):
         url = KUrl(self.dstBaseUrl)
-        url.addPath(self.destinationUi.eventComboBox.currentText())
+        url.addPath(self.ui.eventComboBox.currentText())
         return url
 
 
