@@ -1,0 +1,11 @@
+[Desktop Entry]
+X-KDE-Solid-Predicate=[ StorageVolume.ignored == false AND StorageVolume.usage == 'FileSystem' ]
+Type=Service
+Actions=open;
+
+[Desktop Action open]
+# %f gives StorageAccess.filePath, %d gives Block.device, %i gives UDI
+#Exec=~/src/gwenview-importer/gwenview-import --udi %i
+Exec=/home/aurelien/src/gwenview-importer/gwenview-importer --src %f
+Icon=gwenview
+Name=Download Photos with Gwenview
