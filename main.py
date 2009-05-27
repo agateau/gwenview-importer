@@ -63,6 +63,73 @@ def getShootingDateTimeForUrl(url):
         return None
 
 
+class Controller(QObject):
+    def __init__(self, src, baseDst):
+        QObject.__init__(self)
+        self.src = src
+        self.dlg = ImportDialog(KUrl(baseDst))
+        QObject.connect(self.dlg, \
+            SIGNAL("currentPageChanged(KPageWidgetItem*, KPageWidgetItem*)"), \
+            self.slotCurrentPageChanged)
+
+
+    def run(self):
+        self.dlg.show()
+
+
+    def slotCurrentPageChanged(self, newItem, oldItem):
+        self.dstDirUrl = self.dlg.dstUrl()
+
+        dir = unicode(self.dstDirUrl.path())
+        if not os.path.exists(dir):
+            os.makedirs(dir)
+
+        self.urlList = listImages(self.src)
+        if not self.urlList:
+            self.dlg.close()
+            KMessageBox.information(None, i18n("No picture to import."))
+            return
+        self.dlg.showProgressPage(len(self.urlList))
+        self.copyOneUrl()
+
+
+    def copyOneUrl(self):
+        url = self.urlList.pop()
+        name = getNameForUrl(url)
+        dstUrl = KUrl(self.dstDirUrl)
+        dstUrl.addPath(name)
+        job = KIO.copy(url, dstUrl, KIO.HideProgressInfo)
+        QObject.connect(job, SIGNAL("result(KJob*)"), self.slotJobResult)
+
+
+    def slotJobResult(self, job):
+        if job.error() != 0:
+            job.uiDelegate().showErrorMessage()
+            self.dlg.close()
+            return
+
+        self.dlg.increaseProgressValue()
+        if self.urlList:
+            self.copyOneUrl()
+        else:
+            self.dlg.close()
+            self.deleteFromCard()
+
+
+    def deleteFromCard(self):
+        answer = KMessageBox.questionYesNo(
+            None, i18n("Pictures have been imported. Delete them from card?"),
+            QString(),
+            KStandardGuiItem.del_(),
+            KStandardGuiItem.close())
+
+        if answer == KMessageBox.Yes:
+            job = KIO.del_(KUrl.List(urlList))
+            job.exec_()
+
+        os.execlp("gwenview", "gwenview", unicode(self.dstDirUrl.url()))
+
+
 def main():
     app = QApplication(sys.argv)
 
@@ -88,38 +155,9 @@ def main():
         src = options.src
 
     baseDst = os.path.expanduser(options.baseDst)
-    dlg = ImportDialog(KUrl(baseDst))
-    if not dlg.exec_():
-        return 0
-
-    dstDirUrl = dlg.dstUrl()
-
-    dir = unicode(dstDirUrl.path())
-    if not os.path.exists(dir):
-        os.makedirs(dir)
-
-    urlList = listImages(src)
-    for url in urlList:
-        name = getNameForUrl(url)
-        dstUrl = KUrl(dstDirUrl)
-        dstUrl.addPath(name)
-        job = KIO.copy(url, dstUrl)
-        if not job.exec_():
-            KMessageBox.information(i18n("<b>Transfer failed</b><br>%1", job.errorString()))
-            return 0
-
-    answer = KMessageBox.questionYesNo(
-        None, i18n("Delete imported images from card?"),
-        QString(),
-        KStandardGuiItem.del_(),
-        KStandardGuiItem.close())
-
-    if answer == KMessageBox.Yes:
-        job = KIO.del_(KUrl.List(urlList))
-        job.exec_()
-
-    os.execlp("gwenview", "gwenview", unicode(dstUrl.url()))
-
+    controller = Controller(src, baseDst)
+    controller.run()
+    app.exec_()
     return 0
 
 
