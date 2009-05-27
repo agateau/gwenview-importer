@@ -22,11 +22,15 @@ class ImportDialog(KDialog):
         self.ui.setupUi(widget)
         widget.layout().setMargin(0)
         self.setMainWidget(widget)
+        self.showButtonSeparator(True)
 
         QObject.connect(self.ui.eventComboBox, SIGNAL("editTextChanged(QString)"), \
             self.updateDstLabel)
 
         self.ui.eventComboBox.setFocus()
+        font = self.ui.dstLabel.font()
+        font.setItalic(True)
+        self.ui.dstLabel.setFont(font)
         self.updateDstLabel()
 
 
@@ -38,7 +42,9 @@ class ImportDialog(KDialog):
 
     def updateDstLabel(self):
         url = self.dstUrl()
-        self.ui.dstLabel.setText(url.pathOrUrl())
+        text = i18n("Pictures will be imported in:\n%1", url.pathOrUrl())
+        self.ui.dstLabel.setText(text)
+        self.adjustSize()
 
 
     def dstUrl(self):
