@@ -25,7 +25,7 @@
     </widget>
    </item>
    <item row="1" column="1">
-    <widget class="KComboBox" name="eventComboBox">
+    <widget class="QComboBox" name="eventComboBox">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
        <horstretch>0</horstretch>
@@ -35,8 +35,8 @@
      <property name="editable">
       <bool>true</bool>
      </property>
-     <property name="autoCompletion">
-      <bool>false</bool>
+     <property name="insertPolicy">
+      <enum>QComboBox::NoInsert</enum>
      </property>
     </widget>
    </item>
@@ -87,13 +87,6 @@
    </item>
   </layout>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>KComboBox</class>
-   <extends>QComboBox</extends>
-   <header>kcombobox.h</header>
-  </customwidget>
- </customwidgets>
  <resources/>
  <connections/>
 </ui>
