@@ -86,12 +86,14 @@ class Controller(QObject):
             KMessageBox.information(None, i18n("No picture to import."))
             return False
         self.progressDlg.progressBar().setRange(0, len(self.urlList))
+
+        self.jobList = self.urlList[:]
         self.copyOneUrl()
         return True
 
 
     def copyOneUrl(self):
-        url = self.urlList.pop()
+        url = self.jobList.pop()
         name = getNameForUrl(url)
         dstUrl = KUrl(self.dstDirUrl)
         dstUrl.addPath(name)
@@ -107,7 +109,7 @@ class Controller(QObject):
 
         bar = self.progressDlg.progressBar()
         bar.setValue(bar.value() + 1)
-        if self.urlList:
+        if self.jobList:
             self.copyOneUrl()
         else:
             self.progressDlg.close()
@@ -122,7 +124,7 @@ class Controller(QObject):
             KStandardGuiItem.close())
 
         if answer == KMessageBox.Yes:
-            job = KIO.del_(KUrl.List(urlList))
+            job = KIO.del_(KUrl.List(self.urlList))
             job.exec_()
 
         os.execlp("gwenview", "gwenview", unicode(self.dstDirUrl.url()))
